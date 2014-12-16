@@ -1,0 +1,217 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>User’s Guide to memex-explorer &mdash; memex-explorer 0.2 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="memex-explorer 0.2 documentation" href="index.html"/>
+        <link rel="next" title="Developer’s Guide to memex-explorer" href="dev_guide.html"/>
+        <link rel="prev" title="Welcome to memex-explorer’s documentation." href="index.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="index.html" class="fa fa-home"> memex-explorer</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="">User&#8217;s Guide to memex-explorer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#the-interface">The Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#registering-a-crawl">Registering a Crawl</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#registering-monitor-data">Registering Monitor Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#exploring-registered-data">Exploring Registered Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#plotting-registered-data">Plotting Registered Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#further-features">Further Features</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dev_guide.html">Developer&#8217;s Guide to memex-explorer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dev_guide.html#the-database-model">The Database Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev_guide.html#the-database">The Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev_guide.html#database-migrations">Database migrations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">memex-explorer</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>User&#8217;s Guide to memex-explorer</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          <a href="_sources/user_guide.txt" rel="nofollow"> View page source</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <div class="section" id="user-s-guide-to-memex-explorer">
+<h1>User&#8217;s Guide to memex-explorer<a class="headerlink" href="#user-s-guide-to-memex-explorer" title="Permalink to this headline">¶</a></h1>
+<p><em>NOTE: memex-explorer is still in development, and features are still being added. Do not expect the current product to reflect the final one.</em></p>
+<div class="section" id="the-interface">
+<h2>The Interface<a class="headerlink" href="#the-interface" title="Permalink to this headline">¶</a></h2>
+<p>This is the memex-explorer interface. It is designed to be clean, straightforward, and easy-to-use.</p>
+<img alt="_images/homepage-view.png" src="_images/homepage-view.png" />
+</div>
+<div class="section" id="registering-a-crawl">
+<h2>Registering a Crawl<a class="headerlink" href="#registering-a-crawl" title="Permalink to this headline">¶</a></h2>
+<p>To register a crawl, simply click the &#8216;+&#8217; button on the sidebar. This will take you to the crawl registration page, where you will provide the name and description for the crawl that you are regestering.</p>
+<img alt="_images/add-crawl.png" src="_images/add-crawl.png" />
+<p>Assuming you have named your crawl &#8216;crawl2&#8217;, it will now show up on the sidebar, and you can begin to add plots and data sources for your crawl by clicking the link in the sidebar.</p>
+<img alt="_static/img/sidebar-crawl2.png" src="_static/img/sidebar-crawl2.png" />
+</div>
+<div class="section" id="registering-monitor-data">
+<h2>Registering Monitor Data<a class="headerlink" href="#registering-monitor-data" title="Permalink to this headline">¶</a></h2>
+<p>The next step in using memex-explorer is to register a data source for analysis. This data source must be a URI, or <a class="reference external" href="http://en.wikipedia.org/wiki/Uniform_resource_identifier">Uniform Resource Identifier</a>. This tells memex-explorer where to look for your dataset, and it will register the location in a database for continued use. First, you should see the following menu when you have registered your crawl:</p>
+<img alt="_images/crawl-register-success.png" src="_images/crawl-register-success.png" />
+<p>Next, click the &#8216;Add Monitor Data&#8217; button to add a data source to your crawl. The menu looks similar to the add crawl menu, but with the added &#8216;Data URI&#8217; field. At the moment, the data URI must be a link to somewhere on your computer. You can provide an absolute path (if it is not in the memex-explorer folder) or a relative path (if it is in the memex-explorer folder).</p>
+<img alt="_images/register-monitor-data.png" src="_images/register-monitor-data.png" />
+</div>
+<div class="section" id="exploring-registered-data">
+<h2>Exploring Registered Data<a class="headerlink" href="#exploring-registered-data" title="Permalink to this headline">¶</a></h2>
+<p>After going to the page of your new crawl, you should see a few menu items. There is the crawl data information, along with buttons for adding more data, adding plots, as well as deleting or editing the crawl page.</p>
+<img alt="_static/img/crawl_dash.png" src="_static/img/crawl_dash.png" />
+<p>To explore the data, simply click on the link to the data, and then click &#8216;Explore&#8217;. This will tell you about the shape of the data, as well as the first few items of the dataset.</p>
+<img alt="_images/data-explorer.png" src="_images/data-explorer.png" />
+</div>
+<div class="section" id="plotting-registered-data">
+<h2>Plotting Registered Data<a class="headerlink" href="#plotting-registered-data" title="Permalink to this headline">¶</a></h2>
+<p>In the future, you will be able to automatically generate plots for your data using ContinuumIO&#8217;s plotting library, <a class="reference external" href="http://bokeh.pydata.org/">Bokeh</a>. As of now, we have a sample of some datasets of web crawls that have been graphed and integrated into memex-explorer. This interface will look something like this:</p>
+<img alt="_images/plot-view.png" src="_images/plot-view.png" />
+<p>and is accessable by clicking the relevant plot link on the crawl1 page.</p>
+</div>
+<div class="section" id="further-features">
+<h2>Further Features<a class="headerlink" href="#further-features" title="Permalink to this headline">¶</a></h2>
+<p>In addition to automatic plotting, in the future we will be adding capabilities for custom dashboards containing streaming data and animated graphs.</p>
+</div>
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="dev_guide.html" class="btn btn-neutral float-right" title="Developer’s Guide to memex-explorer"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="Welcome to memex-explorer’s documentation."><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014, Continuum Analytics.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

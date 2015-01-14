@@ -48,14 +48,14 @@ class Domain(PlotManager):
     def update_source(self):
 
         # Relevant
-        relevant_proc = subprocess.Popen(shlex.split("tail -n %d %s" % (TAIL_LENGTH, self.relevant_data)),
+        relevant_proc = subprocess.Popen(shlex.split("head -n %d %s" % (TAIL_LENGTH, self.relevant_data)),
                                 stdout=subprocess.PIPE)
         df = pd.read_csv(relevant_proc.stdout, delimiter='\t', header=None, names=['url', 'timestamp'])
         df['domain'] = df['url'].apply(extract_tld)
         df1 = df.groupby(['domain']).size()
 
         # Crawled
-        crawled_proc = subprocess.Popen(shlex.split("tail -n %d %s" % (TAIL_LENGTH, self.crawled_data)),
+        crawled_proc = subprocess.Popen(shlex.split("head -n %d %s" % (TAIL_LENGTH, self.crawled_data)),
                                 stdout=subprocess.PIPE)
         df = pd.read_csv(crawled_proc.stdout, delimiter='\t', header=None, names=['url', 'timestamp'])
         df['domain'] = df['url'].apply(extract_tld)
@@ -65,6 +65,9 @@ class Domain(PlotManager):
         df.columns = ['relevant', 'crawled']
 
         df = df.sort(self.sort, ascending=False).head(25).fillna(value=0)
+
+        # TODO Remove this, hardcoded because didn't make sense in demo
+        df = df[2:25]
 
         for col in df.columns:
             df['%s_half' % col] = df[col] / 2

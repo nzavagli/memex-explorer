@@ -24,10 +24,8 @@ $( document ).ready(function() {
             // alert("Error: could not start crawl.")
             $( '#status' ).text( "Error (could not start crawl)" );
     }
-{% if config.DEMO %}
-/*
-{% else %}
-{% endif %}
+
+
 $('#playButton').on('click', function() {
 
         $( '#status' ).text( "Starting..." );
@@ -47,17 +45,17 @@ $('#playButton').on('click', function() {
           }
         });
     });
-{% if config.DEMO %}
-*/
 
-/*
-{% else %}
-{% endif %}
+
 $('#stopButton').on('click', function(){
 
         $( '#status' ).text( "Stopping..." );
         this.disabled = true;
-
+        {% if crawl.crawler == 'ache' %}
+         $('#restartButton').removeAttr("disabled");
+        {% else %}
+         $('#playButton').removeAttr("disabled");
+        {% endif %}
         $.ajax({
           type: "POST",
             url: "{{ url_for('stop_crawl', project_slug=project.slug, crawl_slug=crawl.slug) }}",
@@ -96,16 +94,31 @@ $('#stopButton').on('click', function(){
         });
     });
 
-{% if config.DEMO %}
-*/
-{% else %}
-{% endif %}
+   {% if crawl.crawler == "ache" %}
+   $('#restartButton').on('click', function() {
+
+        $( '#status' ).text( "Restarting..." );
+
+        this.disabled = true;
+        $('#stopButton').removeAttr("disabled");
+
+        $.ajax({
+          type: "POST",
+            url: "{{ url_for('run_crawl', project_slug=project.slug, crawl_slug=crawl.slug) }}",
+          success: function(retval) {
+            if (retval == "Error") show_error();
+            else $( '#status' ).text(retval);
+          },
+          failure: function() {
+            show_error();
+          }
+        });
+        });
+    {% endif %}
 
     (function pollStatus() {
-
       // If polling has been turned off, break the loop
       if (!ME.polling) return;
-
         $.ajax({
             url: "{{ url_for('status_crawl', project_slug=project.slug, crawl_slug=crawl.slug) }}",
             type: "GET",
@@ -125,7 +138,7 @@ $('#stopButton').on('click', function(){
         });
     }); 
 
-    function statsPoll(){ 
+    function statsPoll(){
           $.ajax({ type: "GET", url: "/{{ project.slug }}/crawls/{{ crawl.slug }}/stats",
           success: function(data) {
                 console.log("stats-data" + data);
@@ -166,44 +179,38 @@ $('#stopButton').on('click', function(){
 <div class='row'>
   <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
     <h1>{{ crawl.name }} <small>({{ crawl.crawler }})</small>
-    {% if config.DEMO %}
-
-          <button id="playButton" title="Start Crawl" type="button" class="btn btn-control"
-            data-container="body" disabled data-toggle="tooltip" data-placement="bottom">
-              <i class="fa fa-play"></i>
-          </button>
-          <button id="stopButton" title="Stop Crawl" type="button" class="btn btn-control"
-            data-container="body" disabled data-toggle="tooltip" data-placement="bottom">
-              <span class="fa fa-stop"></span>
-          </button>
-
-        {% else %}
 
           <button id="playButton" title="Start Crawl" type="button" class="btn btn-control"
             data-container="body"
-              {% if crawl.crawler == "ache" and status == "Running crawl" or status == "Crawl was stopped" %}
+              {% if crawl.crawler == "ache" and (status == "Crawl running"
+                    or status == "Crawl was stopped"
+                    or status == "Crawl complete") %}
                 disabled
               {% endif %}
-            data-toggle="tooltip" data-placement="bottom">
+                data-toggle="tooltip" data-placement="bottom">
+
               <i class="fa fa-play"></i>
           </button>
           <button id="stopButton" title="Stop Crawl" type="button" class="btn btn-control"
             data-container="body"
-              {% if crawl.crawler == "ache" and status != "Running crawl" %}
+              {% if status != "Crawl running" %}
                 disabled
               {% endif %}
             data-toggle="tooltip" data-placement="bottom">
               <span class="fa fa-stop"></span>
           </button>
-
-
-        {% endif %}
+        {% if crawl.crawler == "ache" %}
+          <button id="restartButton" title="Restart Crawl" type="button" class="btn btn-control"
+            data-container="body"
+            {% if status == "Crawl running" %}
+                disabled
+              {% endif %}
+            data-toggle="tooltip" data-placement="bottom">
+              <span class="fa fa-repeat"></span>
+          </button>
+         {% endif %}
 
     </h1>
-        {% if config.DEMO %}
-            <!--p><em>You are currently not connected to the internet. You can't start/stop a crawl,
-                but you can analyze previous results.</em></p-->
-        {% endif %}
         <h3>Status: <small><span id="status">Getting crawl status...</span></small></h3>
         <table>
             <tr>

@@ -5,7 +5,7 @@
 # ----------------
 
 import os
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, check_output
 import shlex
 from datetime import datetime
 
@@ -95,10 +95,10 @@ class AcheCrawl(Crawl):
     def start(self):
         with open(os.path.join(self.crawl_dir, 'stdout.txt'), 'w') as stdout:
             with open(os.path.join(self.crawl_dir,'stderr.txt'), 'w') as stderr:
-                self.proc = run_proc("ache startCrawl {} {} {} {} {}".format(
+                self.proc = Popen(["ache", "startCrawl",
                                  self.crawl_dir, self.config, self.seeds_file,
-                                 self.model_dir, LANG_DETECT_PATH),
-                            stdout=stdout, stderr=stderr)
+                                 self.model_dir, LANG_DETECT_PATH],  stdout=stdout, stderr=stderr)
+
         return self.proc.pid
 
     def stop(self):
@@ -111,16 +111,22 @@ class AcheCrawl(Crawl):
     def statistics(self):
         harvest_source = get_data_source(self.crawl, "harvest")
         harvest_path = os.path.join(self.crawl_dir, harvest_source.data_uri)
-        proc = run_proc("tail -n 1 %s" % harvest_path)
-        stdout, stderr = proc.communicate()
-        if stderr:
-            raise AcheException(stderr)
-
         ret = {}
-        ret['nutch'] = False
-        relevant, crawled = tuple(stdout.split('\t')[:2])
-        ret['harvest_rate'] = "%.2f" % (float(relevant) / float(crawled))
-        ret['num_crawled'] = crawled
+        if os.stat(harvest_path).st_size == 0:
+            ret['nutch'] = False
+            ret['harvest_rate'] = 0
+            ret['num_crawled'] = 0
+        else:
+            output = check_output(["tail", "-n", "1", harvest_path])
+            if output is None:
+                relevant, crawled, timestamp = tuple([1,1,1])
+            relevant, crawled, timestamp = tuple(output.split('\t'))
+
+
+            ret['nutch'] = False
+
+            ret['harvest_rate'] = "%.2f" % (float(relevant) / float(crawled))
+            ret['num_crawled'] = crawled
 
         return ret
 
@@ -151,29 +157,25 @@ class NutchCrawl(Crawl):
         super(NutchCrawl, self).__init__(crawl)
 
     def start(self):
-        if os.path.exists(os.path.join(self.crawl_dir, 'stop_flag')):
-            stop_file = os.path.join(self.crawl_dir, "stop_flag")
-            remove_stop_flag = Popen(['rm', stop_file]).wait()
-        self.proc = Popen(['crawl', self.seed_dir, self.crawl_dir, str(self.number_of_rounds)])
-        self.status = set_crawl_status(self.crawl, "Crawl has run previously")
+        with open(os.path.join(self.crawl_dir, 'stdout.txt'), 'w') as stdout:
+            with open(os.path.join(self.crawl_dir,'stderr.txt'), 'w') as stderr:
+                self.proc = Popen(['crawl', self.seed_dir, self.crawl_dir, str(self.number_of_rounds)],
+                                   stdout=stdout, stderr=stderr)
+                self.status = set_crawl_status(self.crawl, "Crawl was run previously")
         return self.proc.pid
 
     def stop(self):
-        file = os.path.join(self.crawl_dir, "stop_flag")
-        write_stop_flag = run_proc("touch %s" % file)
-        return write_stop_flag
+        if self.proc is not None:
+            print("Killing %s" % str(self.proc.pid))
+            self.proc.kill()
+            self.stop_time = datetime.now()
 
     def dump_images(self, image_space):
         self.img_dir = os.path.join(IMAGE_SPACE_PATH, str(image_space.id), 'images')
         make_dirs(self.img_dir)
-        img_dump_proc = run_proc(
-            "nutch dump -outputDir {} -segment {} -mimetype image/jpeg image/png".format(
-                            self.img_dir, os.path.join(self.crawl_dir, 'segments')),
-                        stdout=PIPE, stderr=PIPE)
 
-        stdout, stderr = img_dump_proc.communicate()
-        if stderr:
-            raise NutchException(stderr)
+        img_dump_proc = Popen(["nutch", "dump", "-outputDir", self.img_dir, "-segment",
+                               os.path.join(self.crawl_dir, 'segments'),"-mimetype", "image/jpeg", "image/png"]).wait()
 
         return "Dumping images"
 
@@ -188,9 +190,9 @@ class NutchCrawl(Crawl):
                 self.status = "Crawl running"
             elif self.proc.returncode < 0:
                 self.status = "Crawl was stopped"
-            elif self.status == "Crawl not running" and self.keep_going():
-                self.start()
-                self.status = "Crawl running"
+            #elif self.status == "Crawl not running" and self.keep_going():
+            #    self.start()
+             #   self.status = "Crawl running"
             else:
                 self.status = "Crawl not running"
         return self.status
@@ -203,26 +205,24 @@ class NutchCrawl(Crawl):
             ret['nutch'] = True
             return ret
 
-        proc_str = "nutch readdb {} -stats".format(crawl_db_dir)
-        stats_proc = run_proc(proc_str)
-                                              
-        stdout, stderr = stats_proc.communicate()
-        if stderr:
-            raise NutchException(stderr)
+        with open(os.path.join(self.crawl_dir, 'stats_stdout.txt'), 'w') as stdout:
+            with open(os.path.join(self.crawl_dir,'stats_stderr.txt'), 'w') as stderr:
+                stats_proc = Popen(["nutch", "readdb", crawl_db_dir, "-stats"], stdout=stdout, stderr=stderr).wait()
 
         ret = {'num_crawled': 0}
 
-        for line in stdout.split('\n'):
-            if 'db_fetched' in line:
-                ret['num_crawled'] = int(line.split('\t')[-1])
+        with open(os.path.join(self.crawl_dir, 'stats_stdout.txt'), 'r') as stdout:
+            for line in stdout.readlines():
+                if 'db_fetched' in line:
+                    ret['num_crawled'] = int(line.split('\t')[-1])
 
         # ret['duration'] = self.duration
         ret['nutch'] = True
 
         return ret
 
-    def keep_going(self):
-        if os.path.exists(os.path.join(self.crawl_dir, 'stop_flag')):
-            return False
-        else:
-            return True
+    #def keep_going(self):
+    #    if os.path.exists(os.path.join(self.crawl_dir, 'stop_flag')):
+    #        return False
+    #    else:
+    #        return True

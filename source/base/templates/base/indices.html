@@ -9,7 +9,7 @@
 <div class='row'>
     <div class="col-sm-5 col-sm-offset-3 col-sm-5  col-md-offset-2 main">
         <h1>Indices
-            <a id="gotoKibana" disabled style="float:right;" class="btn btn-default btn-duo center link-button" href="/{{ project.slug}}/kibana">Goto Kibana</a>
+            <a id="" style="float:right;" class="btn btn-default btn-duo center link-button" href="http://ec2-54-237-89-165.compute-1.amazonaws.com:9999/">Goto Kibana</a>
         </h1>
     </div>
     {% for index in project.index_set.all %}
@@ -49,8 +49,8 @@
         </div>
     </div>
 </div>
+{# 
 <script>
-{% if deployment %}
 $(document).ready(function(){
 
   var goto_kibana = $("#gotoKibana");
@@ -80,6 +80,6 @@ $(document).ready(function(){
   kibana_interval();
 
 });
-{% endif %}
 </script>
+#}
 {% endblock %}

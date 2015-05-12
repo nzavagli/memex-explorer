@@ -41,7 +41,7 @@
         <a href="{% url 'base:indices' project_slug=project.slug %}">
           <i class="fa fa-archive"> &nbsp; </i>Indices
         </a>
-        <a id="gotoKibana" disabled style="float:right;" class="btn btn-default btn-duo center link-button" href="/{{ project.slug}}/kibana">Goto Kibana</a>
+        <a id="" style="float:right;" class="btn btn-default btn-duo center link-button" href="http://ec2-54-237-89-165.compute-1.amazonaws.com:9999/">Goto Kibana</a>
       </h4>
 
       {% if project.index_set.all %}
@@ -106,7 +106,7 @@
     </div>
 
   </div>
-{% if deployment %}
+{# 
 <script>
 
 $(document).ready(function(){
@@ -140,5 +140,5 @@ $(document).ready(function(){
 });
 
 </script>
-{% endif %}
+#}
 {% endblock %}

@@ -278,7 +278,8 @@ def start_container_celery(sender, instance, **kwargs):
 
 
 if settings.DEPLOYMENT:
-    post_save.connect(start_container_celery, sender = Project)
+    # post_save.connect(start_container_celery, sender = Project)
+    pass
 
 
 def get_zipped_data_path(instance, filename):
@@ -348,6 +349,7 @@ class Index(models.Model):
             unzip(self.uploaded_data.name, self.data_folder)
             if settings.DEPLOYMENT:
                 create_index.delay(self)
+                pass
         super(Index, self).save(*args, **kwargs)
 
     def get_absolute_url(self):

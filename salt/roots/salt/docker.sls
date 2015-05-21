@@ -3,4 +3,5 @@ docker.io:
     - installed
 
 docker-py:
-  pip.installed
+  pip.installed:
+    - reload_modules: True

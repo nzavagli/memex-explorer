@@ -11,4 +11,6 @@ class Command(BaseCommand):
     help = 'Generate docker-compose.yml and use it to create containers'
 
     def handle(self, *args, **options):
+
+        
         Container.create_containers()

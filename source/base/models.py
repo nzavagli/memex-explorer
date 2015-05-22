@@ -196,6 +196,25 @@ class Container(models.Model):
             f.flush()
 
     @staticmethod
+    def create_containers_from_servicedict(servicedict):
+        """
+        Take a dict of services as specifided in services.yml and create containers for them.
+        """
+        #TODO: delete all existing container objects in DB
+        for servicename, spec in servicedict.items():
+            #TODO: figure out how we are connecting to remote services and make 'remote' and 'docker' mutually exclusive.
+            if spec.get('remote'):
+                raise NotImplementedError("we currently cannot connect to remotely running services.")
+            docker_yml = spec['docker']
+
+            Service.objects.create(
+                name = servicename
+
+
+            if spec.get('expose_publicly'):
+                spec['expose_publicly']
+
+    @staticmethod
     def generate_container_context():
         containers = Container.objects.filter(running = True).select_related('service').all()
         return {'containers': [container.context_dict() for container in containers]} #this is going to make about 50 queries when it could make 2 or 5.

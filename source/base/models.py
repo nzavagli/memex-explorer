@@ -80,10 +80,9 @@ class Service(models.Model):
     command = models.TextField(max_length=256)
 
 
-    def create_container_entry(self, project):
+    def create_container_entry(self):
         container = Container.objects.create(
             service = self,
-            project = project,
             high_port = None,
             running = True
         )
@@ -145,7 +144,6 @@ class Container(models.Model):
     DOCKER_COMPOSE_DESTINATION_PATH = os.path.join(settings.BASE_DIR, 'base/docker-compose.yml')
 
     service = models.ForeignKey(Service)
-    project = models.ForeignKey(Project)
     "What type of service should the container be running?"
     high_port = models.IntegerField(null=True, blank=True)
     "If the service exposes a port, what high port does it end up exposing it on?"
@@ -155,12 +153,12 @@ class Container(models.Model):
     "Should the container be running?"
 
     def slug(self):
-        return Container.__slug(self.project, self.service)
+        return Container.__slug(self.service)
 
     def public_urlbase(self):
         if self.public_path_base:
             return self.public_path_base
-        return "/{}/{}".format(self.project.name, self.service.name)
+        return "/{}".format(self.service.name)
 
     def docker_name(self):
         composefile_dir_name = os.path.basename(os.path.dirname(Container.DOCKER_COMPOSE_DESTINATION_PATH))
@@ -173,7 +171,7 @@ class Container(models.Model):
             'command': self.service.command or '',
             'volumes' : list(VolumeMount.objects.filter(service = self.service).values('located_at', 'mounted_at')),
             'ports': [port[0] for port in ServicePort.objects.filter(service=self.service).values_list('internal_port')],
-            'links': [{'name': Container.__slug(self.project, link.to_service), 'alias': link.alias or ''} for link in
+            'links': [{'name': Container.__slug(link.to_service), 'alias': link.alias or ''} for link in
                         ServiceLink.objects.filter(from_service = self.service)],
             'environment_variables': list(EnvVar.objects.filter(service=self.service).values('name', 'value')),
         }
@@ -186,8 +184,8 @@ class Container(models.Model):
         return result
 
     @staticmethod
-    def __slug(project, service):
-        return "{}{}".format(project.name, service.name)
+    def __slug(service):
+        return "{}{}".format(service.name)
 
     @staticmethod
     def fill_template(source, destination, context_dict):
@@ -199,7 +197,7 @@ class Container(models.Model):
 
     @staticmethod
     def generate_container_context():
-        containers = Container.objects.filter(running = True).select_related('service', 'project').all()
+        containers = Container.objects.filter(running = True).select_related('service').all()
         return {'containers': [container.context_dict() for container in containers]} #this is going to make about 50 queries when it could make 2 or 5.
     @staticmethod
     def docker_compose_path():

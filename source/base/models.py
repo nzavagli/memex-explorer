@@ -33,7 +33,7 @@ def zipped_file_validator():
 class Project(models.Model):
     """Project model.
 
-    Every application that plugs into Memex Explorer should have a
+    Every service that plugs into Memex Explorer should have a
     foreign key relationship to a Project.
 
     Model Fields
@@ -66,9 +66,9 @@ class Project(models.Model):
     def __unicode__(self):
         return self.name
 
-class App(models.Model):
+class Service(models.Model):
     """
-    Represents information about starting an application in a container.
+    Represents information about starting a service in a container.
     """
     name = models.CharField(max_length=64, unique=True,
         validators=[alphanumeric_validator()])
@@ -82,7 +82,7 @@ class App(models.Model):
 
     def create_container_entry(self, project):
         container = Container.objects.create(
-            app = self,
+            service = self,
             project = project,
             high_port = None,
             running = True
@@ -92,37 +92,37 @@ class App(models.Model):
     def __unicode__(self):
         return "{} running {}".format(self.name, self.image or self.build)
 
-class AppLink(models.Model):
-    from_app = models.ForeignKey(App, related_name='links')
-    to_app = models.ForeignKey(App)
+class ServiceLink(models.Model):
+    from_service = models.ForeignKey(Service, related_name='links')
+    to_service  = models.ForeignKey(Service)
     alias = models.TextField(max_length=64, null=True, blank=True)
     external = models.BooleanField(default=False)
 
-class AppPort(models.Model):
+class ServicePort(models.Model):
     expose_publicly = models.BooleanField(default=False)
-    app = models.ForeignKey(App, related_name='ports')
+    service = models.ForeignKey(Service, related_name='ports')
     internal_port = models.IntegerField(null=False, blank=False)
     service_name = models.TextField(max_length=64, null=True, blank=True)
 
     def clean(self, *args, **kwargs):
-        if AppPort.objects.filter(app = self.app).filter(expose_publicly = True).exists():
-            raise ValidationError("An application can only expose one port publicly. {} already exposes port {}".filter(
-              self.app.name, AppPort.objects.filter(app = self.app).filter(expose_publicly = True).get().internal_port
+        if ServicePort.objects.filter(service = self.service).filter(expose_publicly = True).exists():
+            raise ValidationError("A service can only expose one port publicly. {} already exposes port {}".filter(
+              self.service.name, ServicePort.objects.filter(service = self.service).filter(expose_publicly = True).get().internal_port
               ))
 
     def __unicode__(self):
-        return "{} is running on port {}".format(self.app.name, self.internal_port)
+        return "{} is running on port {}".format(self.service.name, self.internal_port)
 
     class Meta:
-        unique_together = ('app', 'internal_port')
+        unique_together = ('service', 'internal_port')
 
 class VolumeMount(models.Model):
     """
-    When creating this app, where to mount it in the container.
+    When creating this service, where to mount it in the container.
 
     TODO: More thinking required
     """
-    app = models.ForeignKey(App)
+    service = models.ForeignKey(Service)
     mounted_at = models.TextField(max_length=254)
     """Where within the container is it mounted?"""
     located_at = models.TextField(max_length=254)
@@ -130,7 +130,7 @@ class VolumeMount(models.Model):
     read_only = models.BooleanField(default=False)
 
 class EnvVar(models.Model):
-    app = models.ForeignKey(App, related_name='environment_variables')
+    service = models.ForeignKey(Service, related_name='environment_variables')
     name = models.TextField(max_length=64)
     value = models.TextField(max_length=256, default='')
 
@@ -144,23 +144,23 @@ class Container(models.Model):
     NGINX_CONFIG_COPY_PATH = '/etc/nginx/sites-enabled/default'
     DOCKER_COMPOSE_DESTINATION_PATH = os.path.join(settings.BASE_DIR, 'base/docker-compose.yml')
 
-    app = models.ForeignKey(App)
+    service = models.ForeignKey(Service)
     project = models.ForeignKey(Project)
-    "What type of app should the container be running?"
+    "What type of service should the container be running?"
     high_port = models.IntegerField(null=True, blank=True)
-    "If the app exposes a port, what high port does it end up exposing it on?"
+    "If the service exposes a port, what high port does it end up exposing it on?"
     public_path_base = models.TextField(null=True, blank=True)
-    "If the app is supposed to be served to the outside world and has a base url different than /project.name/app.name, what is it?"
+    "If the service is supposed to be served to the outside world and has a base url different than /project.name/service.name, what is it?"
     running = models.BooleanField(default=False)
     "Should the container be running?"
 
     def slug(self):
-        return Container.__slug(self.project, self.app)
+        return Container.__slug(self.project, self.service)
 
     def public_urlbase(self):
         if self.public_path_base:
             return self.public_path_base
-        return "/{}/{}".format(self.project.name, self.app.name)
+        return "/{}/{}".format(self.project.name, self.service.name)
 
     def docker_name(self):
         composefile_dir_name = os.path.basename(os.path.dirname(Container.DOCKER_COMPOSE_DESTINATION_PATH))
@@ -170,24 +170,24 @@ class Container(models.Model):
         #TODO: This can be dramatically sped up by actually thinking about db queries and a judicious prefectch_related
         result = {
             'slug':self.slug(),
-            'command': self.app.command or '',
-            'volumes' : list(VolumeMount.objects.filter(app = self.app).values('located_at', 'mounted_at')),
-            'ports': [port[0] for port in AppPort.objects.filter(app=self.app).values_list('internal_port')],
-            'links': [{'name': Container.__slug(self.project, link.to_app), 'alias': link.alias or ''} for link in
-                        AppLink.objects.filter(from_app = self.app)],
-            'environment_variables': list(EnvVar.objects.filter(app=self.app).values('name', 'value')),
+            'command': self.service.command or '',
+            'volumes' : list(VolumeMount.objects.filter(service = self.service).values('located_at', 'mounted_at')),
+            'ports': [port[0] for port in ServicePort.objects.filter(service=self.service).values_list('internal_port')],
+            'links': [{'name': Container.__slug(self.project, link.to_service), 'alias': link.alias or ''} for link in
+                        ServiceLink.objects.filter(from_service = self.service)],
+            'environment_variables': list(EnvVar.objects.filter(service=self.service).values('name', 'value')),
         }
-        if self.app.image:
-            result['image'] = self.app.image
-        elif self.app.build:
-            result['build'] = self.app.build
+        if self.service.image:
+            result['image'] = self.service.image
+        elif self.service.build:
+            result['build'] = self.service.build
         else:
             raise ValueError("container {} has neither an image not a build.".format(self.slug()))
         return result
 
     @staticmethod
-    def __slug(project, app):
-        return "{}{}".format(project.name, app.name)
+    def __slug(project, service):
+        return "{}{}".format(project.name, service.name)
 
     @staticmethod
     def fill_template(source, destination, context_dict):
@@ -199,7 +199,7 @@ class Container(models.Model):
 
     @staticmethod
     def generate_container_context():
-        containers = Container.objects.filter(running = True).select_related('app', 'project').all()
+        containers = Container.objects.filter(running = True).select_related('service', 'project').all()
         return {'containers': [container.context_dict() for container in containers]} #this is going to make about 50 queries when it could make 2 or 5.
     @staticmethod
     def docker_compose_path():
@@ -225,19 +225,19 @@ class Container(models.Model):
         print(command)
         out = subprocess.check_output(command)
 
-        app_ids = AppPort.objects.filter(expose_publicly = True).values_list('app_id', flat=True)
+        service_ids = ServicePort.objects.filter(expose_publicly = True).values_list('service_id', flat=True)
         return out
 
     @staticmethod
     def get_port_mappings():
-        app_ports = dict(AppPort.objects.filter(expose_publicly = True).values_list('app_id', 'internal_port'))
+        service_ports = dict(ServicePort.objects.filter(expose_publicly = True).values_list('service_id', 'internal_port'))
         port_mappings = set()
-        for container in Container.objects.filter(app_id__in = app_ports.keys()).filter(running = True).all():
+        for container in Container.objects.filter(service_id__in = service_ports.keys()).filter(running = True).all():
             docker_port_output = subprocess.check_output(['sudo', 'docker', 'port', container.docker_name()])
             for raw_mapping in docker_port_output.split('\n'):
                 print(raw_mapping)
                 if '/tcp -> 0.0.0.0:' in raw_mapping:
-                    if app_ports[container.app_id] in app_ports.values():
+                    if service_ports[container.service_id] in service_ports.values():
                         internal, external = raw_mapping.split('/tcp -> 0.0.0.0:')
                         container.high_port = int(external)
                         container.save()

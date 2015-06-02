@@ -49,37 +49,4 @@
         </div>
     </div>
 </div>
-<script>
-{% if deployment %}
-$(document).ready(function(){
-
-  var goto_kibana = $("#gotoKibana");
-
-  function get_kibana(){
-    return $.ajax({
-      type: "GET",
-      url: "/{{ project.slug }}/kibana/",
-      statusCode: {
-        404: function(){
-          goto_kibana.attr("disabled", true);
-        }
-      },
-      success: function(){
-        goto_kibana.attr("disabled", false);
-      }
-    });
-  }
-
-  function kibana_interval(){
-    get_kibana();
-    return setInterval(function(){
-      get_kibana();
-    }, 20000);
-  }
-
-  kibana_interval();
-
-});
-{% endif %}
-</script>
 {% endblock %}

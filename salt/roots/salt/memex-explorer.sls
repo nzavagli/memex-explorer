@@ -12,12 +12,6 @@ local_settings_path:
      - name: LOCAL_SETTINGS_PATH
      - value: /vagrant/source/memex/local_settings.py
 
-
-# TODO: The create_apps_Tika_ES_Kibana is not idempotent.  This needs
-# to be fixed or the command needs to be protected so that it only
-# executes when the applications need to be created.
-# As a workaround, the SQL database is currently reset on each provision.
-
 reset:
   file.absent:
     - name: /vagrant/source/db.sqlite3
@@ -40,24 +34,6 @@ collectstatic:
     - require:
         - sls: conda-memex
 
-refresh_nginx:
-  cmd.run:
-    - name: |
-        /home/vagrant/miniconda/envs/memex/bin/python /vagrant/source/manage.py refresh_nginx
-    - cwd: /home/vagrant
-    - user: vagrant
-    - require:
-        - sls: conda-memex
-
-create_apps:
-  cmd.run:
-    - name: |
-        /home/vagrant/miniconda/envs/memex/bin/python /vagrant/source/manage.py create_apps_Tika_ES_Kibana
-    - cwd: /home/vagrant
-    - user: vagrant
-    - require:
-        - sls: conda-memex
-
 celery:
   cmd.run:
     - name: /home/vagrant/miniconda/envs/memex/bin/celery --detach --loglevel=debug --logfile=/vagrant/source/celeryd.log --workdir="/vagrant/source" -A memex worker
@@ -66,5 +42,21 @@ celery:
     - env:
         - JAVA_HOME: '/usr/lib/jvm/java-7-oracle'
     - unless: "ps -p $(cat /vagrant/source/celeryd.pid)"
+    - require:
+        - sls: conda-memex
+
+gunicorn:
+  cmd.run:
+    - name: /home/vagrant/miniconda/envs/memex/bin/gunicorn memex.wsgi:application --name $NAME --workers $NUM_WORKERS --log-level=debug --log-file=/vagrant/gunicorn-log --daemon
+    - cwd: /vagrant/source
+    - user: vagrant
+    - group: vagrant
+    - env:
+        - DJANGO_WSGI_MODULE: 'memex.wsgi'
+        - DJANGO_SETTINGS_MODULE: 'memex.settings'
+        - NUM_WORKERS: '3'
+        - SOCKFILE: '/tmp/gunicorn_supervisor.sock'
+        - DJANGODIR: '/vagrant/source'
+        - NAME: 'memex_explorer'
     - require:
         - sls: conda-memex

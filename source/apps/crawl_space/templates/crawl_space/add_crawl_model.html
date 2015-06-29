@@ -10,10 +10,17 @@
 <div class='row'>
     <div class="col-xs-8 col-xs-offset-2 col-sm-6 col-sm-offset-3 main">
         <div class="center">
-            <h1>Add Crawl Model</h1>
+            <h1>Add Crawl Model
+        <a id="gotoDDT"
+            {% if not deployment %}
+            disabled
+            {% endif %}
+            style="float:right;" class="btn btn-default btn-duo center link-button" href="http://localhost:8084/seedcrawler/">
+            Goto DDT
+        </a>
+    </h1>
             {% crispy form %}
         </div>
     </div>
 </div>
 {% endblock %}
-

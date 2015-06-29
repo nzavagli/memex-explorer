@@ -90,6 +90,13 @@
     <div class="col-sm-4">
       <h4 style="line-height:2em;">
           <i class="fa fa-bar-chart"> &nbsp; </i>Crawl Models
+        <a id="gotoKibana"
+            {% if not deployment %}
+            disabled
+            {% endif %}
+            style="float:right;" class="btn btn-default btn-duo center link-button" href="/ddt">
+            DDT
+        </a>
         &nbsp;&nbsp;&nbsp;
       </h4>
         {% if project.crawlmodel_set.all %}
